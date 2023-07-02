@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Text Transformer</title>
+  </head>
+  <body>
+    <form method="POST">
+      <label for="text">Enter text:</label>
+      <input type="text" id="text" name="text" required>
+      <input type="submit" value="Submit">
+    </form>
+    {% if transformed_text %}
+      <h2>Transformed Text:</h2>
+      <p>{{ transformed_text }}</p>
+    {% endif %}
+  </body>
+</html>

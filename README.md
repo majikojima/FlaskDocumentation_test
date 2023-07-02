@@ -6,6 +6,8 @@ reference:[https://msiz07-flask-docs-ja.readthedocs.io/ja/latest/]
   - [usage](#usage-1)
   - [Pythonの「スライス」](#pythonのスライス)
   - [if __name__ == '__main__':](#if-name--main)
+  - [HTMLフォーム](#htmlフォーム)
+  - [A Mermaid diagram showing the flow of Flask's Python processing and template processing.](#a-mermaid-diagram-showing-the-flow-of-flasks-python-processing-and-template-processing)
 
 # Usage
 
@@ -100,3 +102,82 @@ if __name__ == '__main__':
 `app.run(debug=True)`は、Flaskアプリケーションを起動するコードです。`debug=True`パラメータは、デバッグモードを有効にするためのもので、デバッグモードが有効の場合、エラーメッセージが詳細に表示されたり、コードの変更が即時に反映されたりします。
 
 ですから、この行は「このPythonファイルが直接実行された場合、つまり、このファイルがアプリケーションのエントリーポイント（最初に実行される部分）である場合にのみ、Flaskアプリケーションを起動する」という意味になります。
+
+## HTMLフォーム
+
+以下のようにHTMLフォームを使ってデータを受け取り、そのデータを変換して表示するようにしてみましょう。
+
+```python
+from flask import Flask, request, render_template
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET', 'POST'])
+def transform_text():
+    transformed_text = ""
+    if request.method == 'POST':
+        text = request.form['text']
+
+        # Split the string into two parts
+        first_part = text[:2]
+        last_part = text[2:]
+
+        repeated_first_part = first_part * 2
+
+        transformed_text = repeated_first_part + ' ' + last_part
+
+    return render_template('index.html', transformed_text=transformed_text)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+ここではFlaskのrender_template関数を使って、HTMLテンプレートを表示しています。HTMLテンプレートでは、変換されたテキストを表示するための変数`transformed_text`を使っています。
+
+そして、以下のようなHTMLファイル（index.html）をFlaskのtemplatesフォルダ内に作成します。
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <title>Text Transformer</title>
+  </head>
+  <body>
+    <form method="POST">
+      <label for="text">Enter text:</label>
+      <input type="text" id="text" name="text" required>
+      <input type="submit" value="Submit">
+    </form>
+    {% if transformed_text %}
+      <h2>Transformed Text:</h2>
+      <p>{{ transformed_text }}</p>
+    {% endif %}
+  </body>
+</html>
+```
+
+このHTMLファイルはテキスト入力欄と送信ボタンがあるシンプルなフォームを定義しています。ユーザーがテキストを入力して送信ボタンをクリックすると、そのテキストはFlaskアプリケーションにPOSTリクエストとして送信されます。そして、テキストが変換されてその結果が表示されます。
+
+## A Mermaid diagram showing the flow of Flask's Python processing and template processing.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant FlaskApp
+    participant TemplateEngine
+
+    User->>FlaskApp: ページにアクセス(GET)
+    FlaskApp-->>User: 入力フォームの表示
+    User->>FlaskApp: フォームにテキストを入力し送信(POST)
+    FlaskApp->>TemplateEngine: テンプレートのレンダリング
+    TemplateEngine-->>FlaskApp: レンダリング結果のHTML
+    FlaskApp-->>User: レンダリング結果のHTMLを返す
+    User->>FlaskApp: ページにアクセス(GET)
+    FlaskApp-->>User: 入力フォームの表示（再度）
+```
+
+上記の図では、ユーザーがブラウザからアプリにアクセスし、入力フォームが表示されます（GETリクエスト）。  
+ユーザーがテキストを入力してフォームを送信すると、Flaskアプリケーションはテキストを処理し、テンプレートエンジンにレンダリングの要求を送ります（POSTリクエスト）。  
+テンプレートエンジンは、指定されたテンプレートを基にHTMLを生成し、それをFlaskアプリケーションに返します。  
+Flaskアプリケーションは、生成されたHTMLをブラウザに返し、ユーザーは結果を表示されます。  
+ユーザーが再度アクセスすると、同じ流れが繰り返されます。
